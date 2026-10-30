@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>ทายชนิดนก</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@400;600;800&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/onnxruntime-web@1.20.1/dist/ort.min.js"></script>
+  <script defer src="script.js"></script>
+  <style>
+    :root {
+      --asphalt: #1c1f24;
+      --panel: #272b32;
+      --line: #3a3f48;
+      --marking: #f5c518;
+      --text: #f2f2f0;
+      --muted: #a4a9b2;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0; min-height: 100vh;
+      font-family: "Noto Sans Thai", system-ui, sans-serif;
+      background: var(--asphalt); color: var(--text);
+    }
+    main { max-width: 980px; margin: 0 auto; padding: 32px 20px 56px; }
+    h1 { font-size: clamp(28px, 5vw, 44px); font-weight: 800; margin: 0 0 6px; }
+    .sub { color: var(--muted); margin: 0 0 24px; }
+    .layout { display: grid; grid-template-columns: 1fr 280px; gap: 20px; align-items: start; }
+    @media (max-width: 760px) { .layout { grid-template-columns: 1fr; } }
+
+    #drop {
+      border: 2px dashed var(--marking); border-radius: 10px;
+      padding: 18px; text-align: center; cursor: pointer; color: var(--marking);
+      font-weight: 600; margin-bottom: 14px; transition: background .15s;
+    }
+    #drop:hover, #drop.over { background: rgba(245,197,24,.1); }
+    #drop:focus-visible { outline: 3px solid var(--text); outline-offset: 2px; }
+    #imageInput { display: none; }
+
+    .stage {
+      background: var(--panel); border: 1px solid var(--line); border-radius: 10px;
+      min-height: 240px; display: grid; place-items: center; overflow: hidden;
+    }
+    canvas { display: block; max-width: 100%; height: auto; }
+    #placeholder { color: var(--muted); padding: 40px 16px; text-align: center; }
+
+    aside { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 16px; }
+    aside h2 { font-size: 16px; margin: 0 0 12px; }
+    #status { color: var(--muted); font-size: 14px; margin-bottom: 14px; }
+    #status.ok { color: #7ddc8a; }
+    #status.err { color: #ff8a80; }
+    label.slider { display: block; font-size: 14px; color: var(--muted); margin-bottom: 16px; }
+    label.slider input { width: 100%; accent-color: var(--marking); }
+    #summary { list-style: none; margin: 0; padding: 0; }
+    #summary li {
+      display: flex; align-items: center; gap: 10px;
+      padding: 10px 0; border-top: 1px solid var(--line);
+    }
+    #summary .dot { width: 14px; height: 14px; border-radius: 3px; flex: none; }
+    #summary .name { flex: 1; font-weight: 600; }
+    #summary .score { color: var(--muted); font-variant-numeric: tabular-nums; }
+    #empty { color: var(--muted); font-size: 14px; margin: 0; }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>ทายชนิดนก</h1>
+    <p class="sub">อัปโหลดรูป แล้วโมเดล YOLO จะบอกว่าเป็นนกชนิดไหน</p>
+
+    <div class="layout">
+      <section>
+        <div id="drop" tabindex="0" role="button">เลือกรูป หรือลากรูปมาวางที่นี่</div>
+        <input type="file" id="imageInput" accept="image/*" />
+        <div class="stage">
+          <div id="placeholder">ยังไม่มีรูป</div>
+          <canvas id="canvas" hidden></canvas>
+        </div>
+      </section>
+
+      <aside>
+        <h2>ผลการทาย</h2>
+        <div id="status">กำลังโหลดโมเดล...</div>
+        <label class="slider">
+          ความมั่นใจขั้นต่ำ: <b id="thrText">35%</b>
+          <input type="range" id="thr" min="10" max="90" value="35" />
+        </label>
+        <ul id="summary"></ul>
+        <p id="empty">ยังไม่มีผลลัพธ์</p>
+      </aside>
+    </div>
+  </main>
+</body>
+</html>
